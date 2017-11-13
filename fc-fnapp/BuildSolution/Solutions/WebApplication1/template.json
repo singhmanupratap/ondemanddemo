@@ -1,0 +1,114 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "suiteName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the suite"
+      }
+    },
+    "config_web_name": {
+      "defaultValue": "web",
+      "type": "string"
+    },
+    "webAppUri": {
+      "type": "string",
+      "defaultValue": "https://aka.ms/azureiot/connectedfactory/webapp"
+    }
+  },
+  "variables": {
+    "webSiteName": "[parameters('suiteName')]",
+    "webPlanName": "[concat(parameters('suiteName'), '-plan')]",
+    "webSiteVersion": "2016-08-01",
+    "webPlanVersion": "2016-09-01"
+  },
+  "resources": [
+    {
+      "comments": "Generalized from resource: '/subscriptions/b4822aff-b9a6-43bc-a31a-c17fcff146e0/resourceGroups/fc-rg-webapplication1/providers/Microsoft.Web/serverfarms/fc-webapplication1'.",
+      "type": "Microsoft.Web/serverfarms",
+      "sku": {
+        "name": "F1",
+        "tier": "Free",
+        "size": "F1",
+        "family": "F",
+        "capacity": 0
+      },
+      "kind": "app",
+      "name": "[variables('webPlanName')]",
+      "apiVersion": "2016-09-01",
+      "location": "West Europe",
+      "scale": null,
+      "properties": {
+        "name": "[variables('webPlanName')]",
+        "workerTierName": null,
+        "adminSiteName": null,
+        "hostingEnvironmentProfile": null,
+        "perSiteScaling": false,
+        "reserved": false,
+        "targetWorkerCount": 0,
+        "targetWorkerSizeId": 0
+      },
+      "dependsOn": []
+    },
+    {
+      "comments": "Generalized from resource: '/subscriptions/b4822aff-b9a6-43bc-a31a-c17fcff146e0/resourceGroups/fc-rg-webapplication1/providers/Microsoft.Web/sites/fc-webapplication1'.",
+      "type": "Microsoft.Web/sites",
+      "kind": "app",
+      "name": "[variables('webSiteName')]",
+      "apiVersion": "2016-08-01",
+      "location": "West Europe",
+      "scale": null,
+      "properties": {
+        "enabled": true,
+        "hostNameSslStates": [
+          {
+            "name": "[concat(variables('webSiteName'),'.azurewebsites.net')]",
+            "sslState": "Disabled",
+            "virtualIP": null,
+            "thumbprint": null,
+            "toUpdate": null,
+            "hostType": "Standard"
+          },
+          {
+            "name": "[concat(variables('webSiteName'),'.scm.azurewebsites.net')]",
+            "sslState": "Disabled",
+            "virtualIP": null,
+            "thumbprint": null,
+            "toUpdate": null,
+            "hostType": "Repository"
+          }
+        ],
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('webPlanName'))]",
+        "reserved": false,
+        "siteConfig": null,
+        "scmSiteAlsoStopped": false,
+        "hostingEnvironmentProfile": null,
+        "clientAffinityEnabled": true,
+        "clientCertEnabled": false,
+        "hostNamesDisabled": false,
+        "containerSize": 0,
+        "dailyMemoryTimeQuota": 0,
+        "cloningInfo": null
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('webPlanName'))]"
+      ],
+      "resources": [
+        {
+          "name": "MSDeploy",
+          "type": "extensions",
+          "apiVersion": "[variables('webPlanVersion')]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', variables('webSiteName'))]"
+          ],
+          "properties": {
+            "packageUri": "[parameters('webAppUri')]",
+            "connectionString": "",
+            "dbType": ""
+          }
+        }
+      ]
+    }
+  ]
+}

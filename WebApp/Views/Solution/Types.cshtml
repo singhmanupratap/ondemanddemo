@@ -1,0 +1,258 @@
+﻿<html lang="en" dir="ltr">
+<head>
+    <title>Azure IoT Suite</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="content/appicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="content/appicon.ico" type="image/x-icon">
+    <link href="content/styles/styles.css" rel="stylesheet" type="text/css">
+    <script src="resources.resx.js?ver=1.2.0.1"></script>
+    <script src="content/scripts/vendor.js?ver=1.2.0.1"></script>
+    <script src="content/scripts/app.js?ver=1.2.0.1"></script>
+</head>
+<body>
+    <div class="layout">
+        <div class="layout-row">
+            <header>
+                <nav class="navbar navbar-inverse">
+                    <div class="container-fluid">
+                        <div class="navbar-header">
+                            <!--ko ifnot: $root.isMooncake()-->
+                            <a class="navbar-brand" href="#">Microsoft Azure IoT Suite</a>
+                            <!--/ko-->
+                            <!--ko if: $root.isMooncake()--><!--/ko-->
+                            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                            </button>
+                        </div>
+                        <div class="navbar-collapse collapse">
+                            <ul class="nav navbar-nav navbar-right">
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                        <span class="icon-language"></span>
+                                    </a>
+                                    <ul class="dropdown-menu" role="menu" aria-labelledby="account-menu">
+                                        <li role="presentation">
+                                            <a href="/culture/cs">čeština</a>
+                                        </li>
+                                        <li role="presentation">
+                                            <a href="/culture/de">Deutsch</a>
+                                        </li>
+                                        <li role="presentation">
+                                            <a href="/culture/en">English</a>
+                                        </li>
+                                        <li role="presentation">
+                                            <a href="/culture/es">español</a>
+                                        </li>
+                                        <li role="presentation">
+                                            <a href="/culture/fr">français</a>
+                                        </li>
+                                        <li role="presentation">
+                                            <a href="/culture/hu">magyar</a>
+                                        </li>
+                                        <li role="presentation">
+                                            <a href="/culture/it">italiano</a>
+                                        </li>
+                                        <li role="presentation">
+                                            <a href="/culture/ja">日本語</a>
+                                        </li>
+                                        <li role="presentation">
+                                            <a href="/culture/nl">Nederlands</a>
+                                        </li>
+                                        <li role="presentation">
+                                            <a href="/culture/pl">polski</a>
+                                        </li>
+                                        <li role="presentation">
+                                            <a href="/culture/pt-PT">português (Portugal)</a>
+                                        </li>
+                                        <li role="presentation">
+                                            <a href="/culture/pt-BR">português (Brasil)</a>
+                                        </li>
+                                        <li role="presentation">
+                                            <a href="/culture/ru">русский</a>
+                                        </li>
+                                        <li role="presentation">
+                                            <a href="/culture/sv">svenska</a>
+                                        </li>
+                                        <li role="presentation">
+                                            <a href="/culture/tr">Türkçe</a>
+                                        </li>
+                                        <li role="presentation">
+                                            <a href="/culture/zh-Hans">中文(简体)</a>
+                                        </li>
+                                        <li role="presentation">
+                                            <a href="/culture/zh-Hant">中文(繁體)</a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="dropdown account-dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                        <span class="account-avatar"></span>
+                                        <span class="account">
+                                            <span class="account-name">Manu Pratap Singh</span>
+                                            <!--ko with: $root.selectedTenant()-->
+                                            <span class="account-subtitle" data-bind="text: directory">Default Directory</span>
+                                            <!--/ko-->
+                                            <!--ko ifnot: $root.selectedTenant()--><!--/ko-->
+                                        </span>
+                                    </a>
+                                    <ul class="dropdown-menu" role="menu" aria-labelledby="account-menu">
+                                        <li role="presentation">
+                                            <a href="/signout" role="menuitem">Sign out</a>
+                                        </li>
+                                        <li role="separator" class="divider"></li>
+                                        <li role="presentation">
+                                            <a href="https://portal.azure.com/#blade/Microsoft_Azure_Support/HelpAndSupportBlade" target="_blank" role="menuitem">Help &amp; Support</a>
+                                        </li>
+                                        <li role="presentation">
+                                            <a href="https://azure.microsoft.com/en-us/support/legal/" target="_blank" role="menuitem">
+                                                Privacy &amp; Terms
+                                            </a>
+                                        </li>
+                                        <li role="presentation">
+                                            <a href="http://feedback.azure.com/forums/321918-azure-iot" target="_blank" role="menuitem">
+                                                Give feedback
+                                            </a>
+                                        </li>
+                                        <li role="separator" class="divider"></li>
+                                        <li class="dropdown-header">Directory</li>
+
+                                        <!--ko ifnot: tenants()--><!--/ko-->
+                                        <!--ko foreach: { data: tenants(), as: 'tenant' }-->
+                                        <!--ko if: tenant == $root.selectedTenant()-->
+                                        <li role="presentation" class="active">
+                                            <a>
+                                                <span data-bind="text: tenant.directory">Default Directory</span>
+                                                <sub data-bind="text: tenant.domain">manuapratapsinghaccenture.onmicrosoft.com</sub>
+                                            </a>
+                                        </li>
+                                        <!--/ko-->
+                                        <!--ko ifnot: tenant == $root.selectedTenant()--><!--/ko-->
+                                        <!--/ko-->
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+                <messages>
+                    <div data-bind="foreach: messages"></div>
+                    <script id="errorMessage" type="text/html">
+                        <div class="alert alert-danger">
+                            <span class="indicator indicator-danger" data-bind="content: content"></span>
+                            <button class="btn-close" data-bind="click: close" aria-label="Close error message"><span aria-hidden="true"></span></button>
+                        </div>
+                    </script>
+                </messages>
+            </header>
+        </div>
+        <div class="layout-row">
+            <div class="layout-cell layout-expand page" data-bind="component: currentPage">
+                <div class="layout-cell-content text-center tiles">
+                    <div class="layout-cell-content-fit text-center tiles">
+                        <div class="centered">
+                            <!--ko if: requestInProgress()--><!--/ko-->
+                            <!--ko if: solutionTypes().length > 0-->
+                            <h1 data-bind="text: Resources.PageTitleSolutionTypes">Solution types</h1>
+                            <div data-bind="template: { name: 'solutionType', foreach: solutionTypes }">
+                                <div class="tile tile-long">
+                                    <!--ko if: isTeaser --><!--/ko-->
+                                    <img class="tile-illustration" data-bind="attr: { src: illustrationUrl }" src="/content/styles/img/RemoteMonitoring.jpg">
+                                    <div class="panel-body tile-full-height">
+                                        <h2 data-bind="text: name">Remote monitoring</h2>
+                                        <div data-bind="text: description">Connect and monitor your devices to analyze untapped data and improve business outcomes by automating processes.</div>
+                                        <!--ko if: id=='RM2'--><!--/ko-->
+                                    </div>
+                                    <!--ko if: $parent.readyToProvision() && !isTeaser -->
+                                    <a class="btn btn-primary" data-bind="attr: { href: '#solutions/types/'+id }, traceClick: '[{0}] Solution Types > Select'.format(id), text: Resources.ButtonLabelSelectSolution" href="#solutions/types/RM">Select</a>
+                                    <!--/ko-->
+                                </div>
+
+                                <div class="tile tile-long">
+                                    <!--ko if: isTeaser --><!--/ko-->
+                                    <img class="tile-illustration" data-bind="attr: { src: illustrationUrl }" src="/content/styles/img/RemoteMonitoringV2.png">
+                                    <div class="panel-body tile-full-height">
+                                        <h2 data-bind="text: name">Remote monitoring</h2>
+                                        <div data-bind="text: description">Connect and monitor your devices to analyze untapped data and improve business outcomes by automating processes.</div>
+                                        <!--ko if: id=='RM2'-->
+                                        <div data-bind="html: Resources.TextblockSolutionPreviewDescription" class="tile-preview">
+                                            Preview highlights include:<ul><li>Redesigned user interface</li><li>Microservices-based architecture</li><li>Availability in both .NET and Java</li><li>View an <a href="http://www.microsoftazureiotsuite.com/demos/remotemonitoring">interactive demo</a></li></ul>
+                                        </div>
+                                        <!--/ko-->
+                                    </div>
+                                    <!--ko if: $parent.readyToProvision() && !isTeaser -->
+                                    <a class="btn btn-primary" data-bind="attr: { href: '#solutions/types/'+id }, traceClick: '[{0}] Solution Types > Select'.format(id), text: Resources.ButtonLabelSelectSolution" href="#solutions/types/RM2">Select</a>
+                                    <!--/ko-->
+                                </div>
+
+                                <div class="tile tile-long">
+                                    <!--ko if: isTeaser --><!--/ko-->
+                                    <img class="tile-illustration" data-bind="attr: { src: illustrationUrl }" src="/content/styles/img/ConnectedFactory.jpg">
+                                    <div class="panel-body tile-full-height">
+                                        <h2 data-bind="text: name">Connected factory</h2>
+                                        <div data-bind="text: description">Accelerate your journey to Industrie 4.0 – connect, monitor and control industrial devices for insights using OPC UA to drive operational productivity and profitability.</div>
+                                        <!--ko if: id=='RM2'--><!--/ko-->
+                                    </div>
+                                    <!--ko if: $parent.readyToProvision() && !isTeaser -->
+                                    <a class="btn btn-primary" data-bind="attr: { href: '#solutions/types/'+id }, traceClick: '[{0}] Solution Types > Select'.format(id), text: Resources.ButtonLabelSelectSolution" href="#solutions/types/CF">Select</a>
+                                    <!--/ko-->
+                                </div>
+
+                                <div class="tile tile-long">
+                                    <!--ko if: isTeaser --><!--/ko-->
+                                    <img class="tile-illustration" data-bind="attr: { src: illustrationUrl }" src="/content/styles/img/PredictiveMaintenance.jpg">
+                                    <div class="panel-body tile-full-height">
+                                        <h2 data-bind="text: name">Predictive maintenance</h2>
+                                        <div data-bind="text: description">Anticipate maintenance needs and avoid unscheduled downtime by connecting and monitoring your devices for predictive maintenance.</div>
+                                        <!--ko if: id=='RM2'--><!--/ko-->
+                                    </div>
+                                    <!--ko if: $parent.readyToProvision() && !isTeaser -->
+                                    <a class="btn btn-primary" data-bind="attr: { href: '#solutions/types/'+id }, traceClick: '[{0}] Solution Types > Select'.format(id), text: Resources.ButtonLabelSelectSolution" href="#solutions/types/PM">Select</a>
+                                    <!--/ko-->
+                                </div>
+                            </div>
+                            <!--/ko-->
+                        </div>
+                    </div>
+                </div>
+
+                <script id="solutionType" type="text/html">
+                    <div class="tile tile-long">
+                        <!--ko if: isTeaser -->
+                        <div class="ribbon-wrapper">
+                            <div class="ribbon" data-bind="text: Resources.RibbonLabelComingSoon"></div>
+                        </div>
+                        <!--/ko-->
+                        <img class="tile-illustration" data-bind="attr: { src: illustrationUrl }" />
+                        <div class="panel-body tile-full-height">
+                            <h2 data-bind="text: name"></h2>
+                            <div data-bind="text: description"></div>
+                            <!--ko if: id=='RM2'-->
+                            <div data-bind="html: Resources.TextblockSolutionPreviewDescription" class="tile-preview"></div>
+                            <!--/ko-->
+                        </div>
+                        <!--ko if: $parent.readyToProvision() && !isTeaser -->
+                        <a class="btn btn-primary" data-bind="attr: { href: '#solutions/types/'+id }, traceClick: '[{0}] Solution Types > Select'.format(id), text: Resources.ButtonLabelSelectSolution"></a>
+                        <!--/ko-->
+                    </div>
+                </script>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        Microsoft.Azure.IoT.bootstrap({
+            appinsightsKey: "6c193521-85b0-4409-ae66-61f0667939e0",
+            graph: true,
+            azurePortalEndpoint: "",
+            tenant: "3a8245c0-3fee-45f8-b985-3b71f26ebe84"
+        });
+    </script>
+
+
+    <object id="__symantecPKIClientMessenger" data-supports-flavor-configuration="true" data-extension-version="0.5.0.109" style="display: none;"></object><span id="__symantecPKIClientDetector" style="display: none;">__PRESENT</span>
+</body>
+</html>

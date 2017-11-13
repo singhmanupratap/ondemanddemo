@@ -1,0 +1,18 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sites_fc_webapplication1_name": {
+            "value": null
+        },
+        "serverfarms_fc_webapplication1_name": {
+            "value": null
+        },
+        "config_web_name": {
+            "value": null
+        },
+        "hostNameBindings_fc_webapplication1.azurewebsites.net_name": {
+            "value": null
+        }
+    }
+}
