@@ -100,6 +100,8 @@ namespace BusinessLayer
                 updateBuild.Description = build.Description;
                 updateBuild.VSTSBuildId = build.VSTSBuildId;
                 updateBuild.PkgURL = build.PkgURL;
+                updateBuild.TemplateParameterUri = build.TemplateParameterUri;
+                updateBuild.TemplateUri = build.TemplateUri;
                 await SolutionRepository.UpdateBuildAsync(updateBuild);
 
                 var queueObject = new QueueObject
@@ -114,13 +116,25 @@ namespace BusinessLayer
                     PresetAzureLocationName = updateBuild.PresetAzureLocationName,
                     PresetAzureAccountName = updateBuild.PresetAzureAccountName,
                     PresetAzureDirectoryName = updateBuild.PresetAzureDirectoryName,
-                    PresetAzureSubscriptionName = updateBuild.PresetAzureSubscriptionName
+                    PresetAzureSubscriptionName = updateBuild.PresetAzureSubscriptionName,
+                    TemplateParameterUri = updateBuild.TemplateParameterUri,
+                    TemplateUri = updateBuild.TemplateUri
                 };
 
                 await SolutionRepository.AddBuildInQueueAsync(queueObject);
                 return await SolutionRepository.GetBuildAsync(updateBuild.RowKey);
             }
             return updateBuild;
+        }
+
+        public Task<Build> DeployAsync(Build build, string id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Build> DeployCompleteAsync(Build build, string id)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -19,5 +19,14 @@ namespace Api.Models
         public string PresetAzureSubscriptionName { get; set; }
         public string PresetAzureDirectoryName { get; set; }
         public string VmAdminPassword { get; set; }
+        public string Command { get; set; }
+        public string Configuration { get; set; }
+        public string AzureEnvironmentName { get; set; }
+        public int IsLowCost { get; set; }
+        public int IsForce { get; set; }
+        public string BuildRepositoryLocalPath { get; set; }
+        public string PresetAzureAccountPassword { get; set; }
+        public string TemplateUri { get; set; }
+        public string TemplateParameterUri { get; set; }
     }
 }

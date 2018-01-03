@@ -20,6 +20,7 @@ namespace Interfaces
         Task<Build> BuildSolutionAsync(Build build);
         Task<Build> UpdateBuildAsync(Build build, string id);
         Task<Build> CompleteBuildAsync(Build build, string buildId);
-        
+        Task<Build> DeployAsync(Build build, string id);
+        Task<Build> DeployCompleteAsync(Build build, string id);
     }
 }

@@ -55,15 +55,30 @@ namespace Api.Controllers
             return Ok(result);
         }
 
-
         [HttpPut]
-        [Route("{id}")]
-        public async Task<IHttpActionResult> Update([FromBody]Build build, string id)
+        [Route("{id}/completebuild")]
+        public async Task<IHttpActionResult> CompleteBuild([FromBody]Build build, string id)
         {
-            var result = await SolutionBusinessLayer.UpdateBuildAsync(build, id);
+            var result = await SolutionBusinessLayer.CompleteBuildAsync(build, id);
             return Ok(result);
         }
 
+        [HttpPut]
+        [Route("{id}/deploy")]
+        public async Task<IHttpActionResult> Deploy([FromBody]Build build, string id)
+        {
+            var result = await SolutionBusinessLayer.DeployAsync(build, id);
+            return Ok(result);
+        }
+
+
+        [HttpPut]
+        [Route("{id}/deploycomplete")]
+        public async Task<IHttpActionResult> DeployComplete([FromBody]Build build, string id)
+        {
+            var result = await SolutionBusinessLayer.DeployCompleteAsync(build, id);
+            return Ok(result);
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -78,5 +93,13 @@ namespace Api.Controllers
             return Ok(result);
         }
 
+
+        [HttpPut]
+        [Route("{id}")]
+        public async Task<IHttpActionResult> Update([FromBody]Build build, string id)
+        {
+            var result = await SolutionBusinessLayer.UpdateBuildAsync(build, id);
+            return Ok(result);
+        }
     }
 }
