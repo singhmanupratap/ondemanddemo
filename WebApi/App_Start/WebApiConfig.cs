@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
 
-namespace Common
+namespace WebApi
 {
     public static class WebApiConfig
     {
@@ -19,6 +19,8 @@ namespace Common
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
+
+            UnityConfig.RegisterComponents(config);
         }
     }
 }

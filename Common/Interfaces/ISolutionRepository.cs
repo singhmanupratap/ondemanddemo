@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Common.Models;
-
 namespace Common.Interfaces
 {
     public interface ISolutionRepository
     {
-        Task AddInSolutionQueue(Solution solution, string newTaskId);
-        Task<List<Solution>> GetSolutions();
-        Task<Solution> GetSolution(string id);
-        Task<string> GetBuildStatus(string id);
-        Task<bool> AddSolution(Solution solution);
+        Task<List<Solution>> GetSolutionsAsync();
+        Task<Solution> GetSolutionAsync(string id);
+        Task<bool> AddSolutionAsync(Solution solution);
+        Task AddBuildAsync(Build build);
+        Task AddBuildInQueueAsync(QueueObject queueObject);
+        Task<List<Build>> GetBuildsAsync();
+        Task<Build> GetBuildAsync(string id);
+        Task UpdateBuildAsync(Build build);
+        Task<Build> GetBuildByVSTSBuildAsync(string buildId);
     }
 }

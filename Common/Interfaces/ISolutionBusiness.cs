@@ -5,7 +5,7 @@ using Common.Models;
 
 namespace Common.Interfaces
 {
-    public interface ISolutionBusinessLayer
+    public interface ISolutionBusinessLayer2
     {
         ISolutionRepository SolutionRepository { get; set; }
 

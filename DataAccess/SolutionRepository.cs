@@ -1,13 +1,14 @@
 ﻿using Common.Interfaces;
-using System;
 using Common.Models;
 using Microsoft.Azure;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
-using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Table;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace DataAccess
 {
@@ -17,29 +18,6 @@ namespace DataAccess
         {
         }
 
-        public async Task AddInSolutionQueue(Solution solution, string newTaskId)
-        {
-            var queue = await CreateCloudQueueClientAsync("SolutionQueue");
-
-            // Create a message and add it to the queue.
-            var message = new CloudQueueMessage(string.Format("{0}#{1}", solution.Name, newTaskId));
-            await queue.AddMessageAsync(message);
-
-            // Create a new SolutionQueue entity.
-            var solutionQueue = new SolutionQueue
-            {
-                Id = newTaskId,
-                SolutionId = solution.Id,
-                BuildStatus = BuildStatus.InProcess
-            };
-
-            // Create the TableOperation object that inserts the customer entity.
-            var insertOperation = TableOperation.Insert(solutionQueue);
-
-            var table = await SolutionRepository.CreateCloudTableAsync("SolutionQueue");
-            // Execute the insert operation.
-            await table.ExecuteAsync(insertOperation);
-        }
 
         private static async Task<CloudTable> CreateCloudTableAsync(string tableName)
         {
@@ -79,60 +57,86 @@ namespace DataAccess
             return cloudQueueClient;
         }
 
-        public async Task<List<Solution>> GetSolutions()
+        public async Task<List<Solution>> GetSolutionsAsync()
         {
-            var result = await GetTableResult("Solution");
-            return result;
-        }
-
-        private static async Task<List<Solution>> GetTableResult(string tableName)
-        {
-            var table = await SolutionRepository.CreateCloudTableAsync(tableName);
-                        TableContinuationToken continuationToken = null;
+            var table = await SolutionRepository.CreateCloudTableAsync("Solution");
+            TableContinuationToken continuationToken = null;
             var tableQuery = new TableQuery<Solution>();
 
             TableQuerySegment<Solution> tableQueryResult =
                 await table.ExecuteQuerySegmentedAsync(tableQuery, continuationToken);
 
             return tableQueryResult.Results;
-            // Construct the query operation for all customer entities where PartitionKey="Smith".
-            //var operation = TableOperation.Retrieve<Solution>(string.Empty, string.Empty);
-            //var result = await table.ExecuteAsync(operation);
-            //return result;
         }
 
-        public async Task<Solution> GetSolution(string id)
+        public async Task<Solution> GetSolutionAsync(string id)
         {
             var table = await SolutionRepository.CreateCloudTableAsync("Solution");
-            var retrieveOperation = TableOperation.Retrieve<Solution>("", id);
-            var retrieveResult = await table.ExecuteAsync(retrieveOperation);
-            var task = Task<Solution>.Run(() => { return (Solution)retrieveResult.Result; });
-            return await task;
+            TableContinuationToken continuationToken = null;
+            var buildQuery = new TableQuery<Solution>().Where(TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, id));
+            var tableQueryResult = await table.ExecuteQuerySegmentedAsync(buildQuery, continuationToken);
+            return tableQueryResult.Results.FirstOrDefault();
         }
 
-        public async Task<string> GetBuildStatus(string id)
+        public async Task<bool> AddSolutionAsync(Solution solution)
         {
-            var table = await SolutionRepository.CreateCloudTableAsync("SolutionQueue");
-            var retrieveOperation = TableOperation.Retrieve<SolutionQueue>("", id);
-            var retrieveResult = await table.ExecuteAsync(retrieveOperation);
-            var task = Task<SolutionQueue>.Run(() => { return ((SolutionQueue)retrieveResult.Result).BuildStatus.ToString(); });
-            return await task;
-        }
-
-        public async Task<bool> AddSolution(Solution solution)
-        {
+            solution.RowKey = Guid.NewGuid().ToString();
             var table = await SolutionRepository.CreateCloudTableAsync("Solution");
-
-
-
-
-
-            var retrieveOperation = TableOperation.Insert(solution);
-            var retrieveResult = await table.ExecuteAsync(retrieveOperation);
-            var task = Task<Solution>.Run(() => { return (bool)retrieveResult.Result; });
-            return await task;
+            var operation = TableOperation.Insert(solution);
+            var retrieveResult = await table.ExecuteAsync(operation);
+            return true;
         }
 
+        public async Task AddBuildInQueueAsync(QueueObject queueObject)
+        {
+            var queue = await CreateCloudQueueClientAsync("solution-build-queue");
+            string serializedMessage = JsonConvert.SerializeObject(queueObject);
+            var cloudQueueMessage = new CloudQueueMessage(serializedMessage);
+            await queue.AddMessageAsync(cloudQueueMessage);
+        }
 
+        public async Task AddBuildAsync(Build build)
+        {
+            var table = await SolutionRepository.CreateCloudTableAsync("Build");
+            var operation = TableOperation.Insert(build);
+            var result = await table.ExecuteAsync(operation);
+        }
+
+        public async Task<List<Build>> GetBuildsAsync()
+        {
+            var table = await SolutionRepository.CreateCloudTableAsync("Build");
+            TableContinuationToken continuationToken = null;
+            var tableQuery = new TableQuery<Build>();
+
+            TableQuerySegment<Build> tableQueryResult =
+                await table.ExecuteQuerySegmentedAsync(tableQuery, continuationToken);
+
+            return tableQueryResult.Results;
+        }
+
+        public async Task<Build> GetBuildAsync(string id)
+        {
+            var table = await SolutionRepository.CreateCloudTableAsync("Build");
+            TableContinuationToken continuationToken = null;
+            var buildQuery = new TableQuery<Build>().Where(TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, id));
+            var tableQueryResult = await table.ExecuteQuerySegmentedAsync(buildQuery, continuationToken);
+            return tableQueryResult.Results.FirstOrDefault();
+        }
+
+        public async Task UpdateBuildAsync(Build build)
+        {
+            var table = await SolutionRepository.CreateCloudTableAsync("Build");
+            var tableOperation = TableOperation.Replace(build);
+            await table.ExecuteAsync(tableOperation);
+        }
+
+        public async Task<Build> GetBuildByVSTSBuildAsync(string buildId)
+        {
+            var table = await SolutionRepository.CreateCloudTableAsync("Build");
+            TableContinuationToken continuationToken = null;
+            var buildQuery = new TableQuery<Build>().Where(TableQuery.GenerateFilterCondition("VSTSBuildId", QueryComparisons.Equal, buildId));
+            var tableQueryResult = await table.ExecuteQuerySegmentedAsync(buildQuery, continuationToken);
+            return tableQueryResult.Results.FirstOrDefault();
+        }
     }
 }

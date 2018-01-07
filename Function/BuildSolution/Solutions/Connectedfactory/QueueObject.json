@@ -1,0 +1,79 @@
+﻿{
+
+  "QueueObject": {
+    "Id": "d96163db-9031-4d3d-9147-02139cf6ed23",
+    "SolutionName": "ConnectedFactory",
+    "BuildTemplate": "",
+    "Status": 1,
+    "BuildId": "63",
+    "PkgURL": "",
+    "AzureAccountOwnerName": "Aditya@manuapratapsinghaccenture.onmicrosoft.com",
+    "AzureSubscriptionId": "54ecce53-5b7e-4faa-870c-ac479b0b83d7",
+    "AzureTenantId": "3a8245c0-3fee-45f8-b985-3b71f26ebe84",
+    "DeploymentName": "test-confactoriesx",
+    "PresetAzureDirectoryName": "Default Directory",
+    "PresetAzureLocationName": "West Europe",
+    "PresetAzureSubscriptionName": "Free Trial",
+    "ServicePrincipalId": "6a0fabaf-3938-4064-a097-c7e248991fe8",
+    "ServicePrincipalPassword": "man5480U!",
+    "VmAdminPassword": "man5480U!"
+  },
+
+  "SolutionObject": {
+    "Name": "ConnectedFactory",
+    "DisplayName": "ConnectedFactory",
+    "SolutionType": 1,
+    "SourceControlType": 0,
+    "BuildTemplate": "execute.ps1",
+    "Image": "",
+    "PartitionKey": "",
+    "RowKey": "",
+    "Timestamp": "",
+    "ETag": ""
+  },
+
+  "Object": {
+    "Name": "ConnectedFactory",
+    "DisplayName": "ConnectedFactory",
+    "SolutionType": 0,
+    "SourceControlType": 0,
+    "BuildTemplate": "",
+    "Image": "ConnectedFactory.jpg",
+    "PartitionKey": "",
+    "RowKey": "",
+    "Timestamp": "",
+    "ETag": ""
+  },
+
+  "BuildObject": {
+    "SolutionId": "c60175e1-c955-47ae-96d8-3d9554ece7b7",
+    "Status": 0,
+    "Description": "",
+    "VSTSBuildId": "",
+    "PkgURL": "",
+    "DeploymentName": "testfactory",
+    "PresetAzureLocationName": "West Europe",
+    "PresetAzureAccountName": "Aditya@manuapratapsinghaccenture.onmicrosoft.com",
+    "PresetAzureSubscriptionName": "Visual Studio Professional with MSDN",
+    "PresetAzureDirectoryName": "Default Directory",
+    "VmAdminPassword": "man5480U!",
+    "Command": "cloud",
+    "Configuration": "release",
+    "AzureEnvironmentName": "AzureCloud",
+    "IsLowCost": 0,
+    "IsForce": 0,
+    "BuildRepositoryLocalPath": "",
+    "PresetAzureAccountPassword": "man5480U!",
+    "TemplateUri": "",
+    "TemplateParameterUri": "",
+    "AzureAccountOwnerName": "Aditya@manuapratapsinghaccenture.onmicrosoft.com",
+    "AzureSubscriptionId": "54ecce53-5b7e-4faa-870c-ac479b0b83d7",
+    "AzureTenantId": "3a8245c0-3fee-45f8-b985-3b71f26ebe84",
+    "ServicePrincipalId": "6a0fabaf-3938-4064-a097-c7e248991fe8",
+    "ServicePrincipalPassword": "man5480U!",
+    "PartitionKey": "",
+    "RowKey": "",
+    "Timestamp": "",
+    "ETag": ""
+  }
+}

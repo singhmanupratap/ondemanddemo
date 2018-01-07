@@ -1,23 +1,32 @@
-﻿using Common.Interfaces;
+﻿using Bussiness;
+using Common.Interfaces;
 using Common.Models;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using System.Web.Mvc;
-using Unity.Attributes;
-namespace Common.Controllers
+using System.Web.Http;
+
+namespace WebApi.Controllers
 {
-    public class SolutionController : Controller
+    [RoutePrefix("api/solutions")]
+    public class SolutionController : ApiController
     {
         public ISolutionBusinessLayer SolutionBusinessLayer { get; set; }
-               
+
+        public SolutionController(ISolutionBusinessLayer solutionBusinessLayer)
+        {
+           SolutionBusinessLayer = solutionBusinessLayer;
+        }
+
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        public async Task<List<Solution>> Index()
+        [HttpGet]
+        [Route("")]
+        public async Task<IHttpActionResult> Get()
         {
-            return await SolutionBusinessLayer.GetSolutions();
+            var result = await SolutionBusinessLayer.GetSolutionsAsync();
+
+            return Ok(result);
         }
 
         /// <summary>
@@ -25,19 +34,28 @@ namespace Common.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task<Solution> GetSolution(string id)
+        [HttpGet]
+        [Route("{id}")]
+        public async Task<IHttpActionResult> Get(string id)
         {
-            return await SolutionBusinessLayer.GetSolution(id);
+            var solution = await SolutionBusinessLayer.GetSolutionAsync(id);
+            return Ok(solution);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="solution"></param>
         /// <returns></returns>
-        public async Task<string> BuildSolution(string id)
+        /// 
+        [HttpPost]
+        [Route("")]
+        public async Task<IHttpActionResult> Post(Solution solution)
         {
-            return await SolutionBusinessLayer.BuildSolution(id);
+            var result = await SolutionBusinessLayer.AddSolutionAsync(solution);
+            return Ok(content: result);
         }
+
+        
     }
 }

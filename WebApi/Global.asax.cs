@@ -6,9 +6,8 @@ using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
-using WebApi;
 
-namespace Common
+namespace WebApi
 {
     public class WebApiApplication : System.Web.HttpApplication
     {
@@ -19,7 +18,6 @@ namespace Common
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
-            UnityConfig.RegisterComponents();
         }
     }
 }

@@ -10,12 +10,12 @@ namespace Common.Models
 {
     public class Solution: TableEntity
     {
-        public string Id { get; set; }
         public string Name { get; set; }
         public string DisplayName { get; set; }
         public SolutionType SolutionType { get; set; }
         public SourceControlType SourceControlType { get; set; }
-        public string TemplateFolder { get; set; }
+        public string BuildTemplate { get; set; }
         public string Image { get; set; }
+        public string Id { get; set; }
     }
 }
