@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-[assembly: OwinStartup(typeof(WebApp.Startup))]
+[assembly: OwinStartup(typeof(Utilities.Startup))]
 
-namespace WebApp
+namespace Utilities
 {
     public partial class Startup
     {

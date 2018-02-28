@@ -4,22 +4,15 @@ using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.OpenIdConnect;
 using Owin;
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Security.Claims;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net;
 using System.Web.Mvc;
-
-namespace WebApp
+namespace Utilities
 {
     public partial class Startup
     {
-        private DataAccess db = new DataAccess();
         public void ConfigureAuth(IAppBuilder app)
         {
             string ClientId = ConfigurationManager.AppSettings["ClientID"];
@@ -34,7 +27,7 @@ namespace WebApp
                 {
                     ClientId = ClientId,
                     Authority = Authority,
-                    RedirectUri = "https://localhost:44394/",
+                    RedirectUri = "http://localhost:57077/",
                     TokenValidationParameters = new System.IdentityModel.Tokens.TokenValidationParameters
                     {
                         ValidateIssuer = false,
@@ -66,16 +59,9 @@ namespace WebApp
 
                             var tokenCache = new ADALTokenCache(signedInUserUniqueName);
                             tokenCache.Clear();
-
                             AuthenticationContext authContext = new AuthenticationContext(string.Format("https://login.windows.net/{0}", tenantID), tokenCache);
-
-                            //var items = authContext.TokenCache.ReadItems().ToList();
-
                             AuthenticationResult result = await authContext.AcquireTokenByAuthorizationCodeAsync(
                                 context.Code, new Uri(HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Path)), credential);
-
-                            //items = authContext.TokenCache.ReadItems().ToList();
-
                             return;
                         },
                         SecurityTokenValidated = (context) =>

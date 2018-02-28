@@ -1,44 +1,41 @@
-﻿
+﻿using Common.Interfaces;
+using DataAccess;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
 using System.Linq;
-using System.Web;
-using WebApp.Models;
+using Utilities.Models;
 
-namespace WebApp
+namespace Utilities
 {
     public class ADALTokenCache : TokenCache
     {
-         private DataAccess db = new DataAccess();
+        private ISolutionRepository repository;// db = new OnDemandDataContext();
         string User;
-        PerUserTokenCache Cache;
-        
+        UserTokenCache Cache;
+
+        public ISolutionRepository Db { get => repository; set => repository = value; }
+
         // constructor
         public ADALTokenCache(string user)
         {
-           // associate the cache to the current user of the web app
+            Db = new SolutionRepository();
+            // associate the cache to the current user of the web app
             User = user;
-            
-            this.AfterAccess = AfterAccessNotification;
-            this.BeforeAccess = BeforeAccessNotification;
-            this.BeforeWrite = BeforeWriteNotification;
-
+            AfterAccess = AfterAccessNotification;
+            BeforeAccess = BeforeAccessNotification;
+            BeforeWrite = BeforeWriteNotification;
             // look up the entry in the DB
-            Cache = db.PerUserTokenCacheList.FirstOrDefault(c => c.webUserUniqueId == User);
+            Cache = Db.GetTokenByWebUserUniqueId(User);
             // place the entry in memory
-            this.Deserialize((Cache == null) ? null : Cache.cacheBits);
+            Deserialize((Cache == null) ? null : Cache.CacheBits);
         }
 
         // clean up the DB
         public override void Clear()
         {
             base.Clear();
-            foreach (var cacheEntry in db.PerUserTokenCacheList)
-                db.PerUserTokenCacheList.Remove(cacheEntry);
-            db.SaveChanges();
+            Db.ClearUserTokens(User);
         }
 
         // Notification raised before ADAL accesses the cache.
@@ -48,51 +45,60 @@ namespace WebApp
             if (Cache == null)
             {
                 // first time access
-                Cache = db.PerUserTokenCacheList.FirstOrDefault(c => c.webUserUniqueId == User);
+                Cache = Cache = new UserTokenCache
+                {
+                    WebUserUniqueId = User,
+                };
             }
             else
             {   // retrieve last write from the DB
-                var status = from e in db.PerUserTokenCacheList
-                             where (e.webUserUniqueId == User)
-                             select new
-                             {
-                                 LastWrite = e.LastWrite
-                             };
+                var tokens = Db.GetTokensByWebUserUniqueId(User);
+                var status = from token in tokens
+                             select new 
+                {
+                     token.LastWrite
+                };
+                
                 // if the in-memory copy is older than the persistent copy
                 if (status.Count() > 0 && status.First().LastWrite > Cache.LastWrite)
                 //// read from from storage, update in-memory copy
                 {
-                    Cache = db.PerUserTokenCacheList.FirstOrDefault(c => c.webUserUniqueId == User);
+                    Cache = Db.GetTokenByWebUserUniqueId(User);
                 }
             }
-            this.Deserialize((Cache == null) ? null : Cache.cacheBits);
+            Deserialize((Cache == null) ? null : Cache.CacheBits);
         }
+
+        internal bool GetToken()
+        {
+            throw new NotImplementedException();
+        }
+
         // Notification raised after ADAL accessed the cache.
         // If the HasStateChanged flag is set, ADAL changed the content of the cache
         void AfterAccessNotification(TokenCacheNotificationArgs args)
         {
             // if state changed
-            if (this.HasStateChanged)
+            if (HasStateChanged)
             {
                 // check for an existing entry
-                Cache = db.PerUserTokenCacheList.FirstOrDefault(c => c.webUserUniqueId == User);
+                Cache = Db.GetTokenByWebUserUniqueId(User);
                 if (Cache == null)
                 {
                     // if no existing entry for that user, create a new one
-                    Cache = new PerUserTokenCache
+                    Cache = new UserTokenCache
                     {
-                        webUserUniqueId = User,
+                        WebUserUniqueId = User,
                     };
                 }
 
                 // update the cache contents and the last write timestamp
-                Cache.cacheBits = this.Serialize();
+                Cache.CacheBits = this.Serialize();
                 Cache.LastWrite = DateTime.Now;
 
                 // update the DB with modification or new entry
-                db.Entry(Cache).State = Cache.Id == 0 ? EntityState.Added : EntityState.Modified;
-                db.SaveChanges();
-                this.HasStateChanged = false;
+               bool status = Db.UpdateToken(Cache);
+               HasStateChanged = false;
             }
         }
         void BeforeWriteNotification(TokenCacheNotificationArgs args)

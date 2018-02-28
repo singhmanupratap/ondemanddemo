@@ -9,6 +9,11 @@ namespace Common.Models
     {
         public string Id { get; set; }
         public string SolutionName { get; set; }
+        public string SolutionId { get; set; }
+        public string BuildDefinitionId { get; set; }
+        public string BuildDefinitionUrl { get; set; }
+        public string BuildDefinitionUserName { get; set; }
+        public string BuildDefinitionPassword { get; set; }
         public string BuildTemplate { get; set; }
         public int Status { get; set; }
         public string BuildId { get; set; }

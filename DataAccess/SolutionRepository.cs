@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Utilities.Models;
 
 namespace DataAccess
 {
@@ -18,7 +19,7 @@ namespace DataAccess
         {
         }
 
-
+        #region Table and Queue operations
         private static async Task<CloudTable> CreateCloudTableAsync(string tableName)
         {
 
@@ -34,6 +35,25 @@ namespace DataAccess
 
             // Create the table if it doesn't exist.
             var task = await table.CreateIfNotExistsAsync();
+
+            return table;
+        }
+
+        private static CloudTable CreateCloudTable(string tableName)
+        {
+
+            // Retrieve the storage account from the connection string.
+            var storageAccount = CloudStorageAccount.Parse(
+                CloudConfigurationManager.GetSetting("StorageConnectionString"));
+
+            // Create the table client.
+            var tableClient = storageAccount.CreateCloudTableClient();
+
+            // Retrieve a reference to the table.
+            var table = tableClient.GetTableReference(tableName);
+
+            // Create the table if it doesn't exist.
+            var task = table.CreateIfNotExists();
 
             return table;
         }
@@ -55,8 +75,10 @@ namespace DataAccess
             await cloudQueueClient.CreateIfNotExistsAsync();
 
             return cloudQueueClient;
-        }
+        } 
+        #endregion
 
+        #region Solution
         public async Task<List<Solution>> GetSolutionsAsync()
         {
             var table = await SolutionRepository.CreateCloudTableAsync("Solution");
@@ -85,7 +107,10 @@ namespace DataAccess
             var operation = TableOperation.Insert(solution);
             var retrieveResult = await table.ExecuteAsync(operation);
             return true;
-        }
+        } 
+        #endregion
+
+        #region Build
 
         public async Task AddBuildInQueueAsync(QueueObject queueObject)
         {
@@ -94,7 +119,6 @@ namespace DataAccess
             var cloudQueueMessage = new CloudQueueMessage(serializedMessage);
             await queue.AddMessageAsync(cloudQueueMessage);
         }
-
         public async Task AddBuildAsync(Build build)
         {
             var table = await SolutionRepository.CreateCloudTableAsync("Build");
@@ -137,6 +161,119 @@ namespace DataAccess
             var buildQuery = new TableQuery<Build>().Where(TableQuery.GenerateFilterCondition("VSTSBuildId", QueryComparisons.Equal, buildId));
             var tableQueryResult = await table.ExecuteQuerySegmentedAsync(buildQuery, continuationToken);
             return tableQueryResult.Results.FirstOrDefault();
+        } 
+        #endregion
+
+        #region User Tokens
+        public bool ClearUserTokens(string user)
+        {
+            var table = CreateCloudTable("UserTokenCache");
+            TableContinuationToken continuationToken = null;
+            var buildQuery = new TableQuery<UserTokenCache>().Where(TableQuery.GenerateFilterCondition("WebUserUniqueId", QueryComparisons.Equal, user));
+            var tableQueryResult = table.ExecuteQuerySegmented(buildQuery, continuationToken);
+            foreach (var item in tableQueryResult.Results)
+            {
+                var tableOperation = TableOperation.Delete(item);
+                table.Execute(tableOperation);
+            }
+            return true;
         }
+
+        public UserTokenCache GetTokenByWebUserUniqueId(string webUserUniqueId)
+        {
+            var table = CreateCloudTable("UserTokenCache");
+            TableContinuationToken continuationToken = null;
+            var buildQuery = new TableQuery<UserTokenCache>().Where(TableQuery.GenerateFilterCondition("WebUserUniqueId", QueryComparisons.Equal, webUserUniqueId));
+            var tableQueryResult = table.ExecuteQuerySegmented(buildQuery, continuationToken);
+            return tableQueryResult.Results.FirstOrDefault();
+        }
+
+        public List<UserTokenCache> GetTokensByWebUserUniqueId(string webUserUniqueId)
+        {
+            var table = CreateCloudTable("UserTokenCache");
+            TableContinuationToken continuationToken = null;
+            var tableQuery = new TableQuery<UserTokenCache>().Where(TableQuery.GenerateFilterCondition("WebUserUniqueId", QueryComparisons.Equal, webUserUniqueId));
+
+            TableQuerySegment<UserTokenCache> tableQueryResult =
+                table.ExecuteQuerySegmented(tableQuery, continuationToken);
+
+            return tableQueryResult.Results;
+        }
+
+        public bool UpdateToken(UserTokenCache token)
+        {
+            token.RowKey = Guid.NewGuid().ToString();
+            token.PartitionKey = token.WebUserUniqueId;
+            var table = CreateCloudTable("UserTokenCache");
+            var operation = TableOperation.Insert(token);
+            var result = table.Execute(operation);
+            return true;
+        } 
+        #endregion
+
+        #region User Session
+        public async Task<UserSession> GetUserSessionByIdAsync(string sessionId)
+        {
+            var table = await CreateCloudTableAsync("UserSession");
+            TableContinuationToken continuationToken = null;
+            var buildQuery = new TableQuery<UserSession>().Where(TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, sessionId));
+            var tableQueryResult = await table.ExecuteQuerySegmentedAsync(buildQuery, continuationToken);
+            return tableQueryResult.Results.FirstOrDefault();
+        }
+
+        public async Task<UserSession> UpdateUserSessionAsync(UserSession session)
+        {
+            var table = await CreateCloudTableAsync("UserSession");
+            var tableOperation = TableOperation.Replace(session);
+            await table.ExecuteAsync(tableOperation);
+            return await GetUserSessionByIdAsync(session.RowKey);
+        }
+
+        public async Task<UserSession> AddUserSessionAsync(UserSession session)
+        {
+            session.RowKey = Guid.NewGuid().ToString();
+            session.PartitionKey = session.RowKey;
+            var table = await CreateCloudTableAsync("UserSession");
+            var operation = TableOperation.Insert(session);
+            var retrieveResult = await table.ExecuteAsync(operation);
+            return await GetUserSessionByIdAsync(session.RowKey);
+        }
+
+        public async Task<Subscription> GetSubscriptionAsync(string id, string connectedBy)
+        {
+            var table = await CreateCloudTableAsync("Subscription");
+            TableContinuationToken continuationToken = null;
+            var idFilter = TableQuery.GenerateFilterCondition("Id", QueryComparisons.Equal, id);
+            var connectedByFilter = TableQuery.GenerateFilterCondition("ConnectedBy", QueryComparisons.Equal, connectedBy);
+            string combinedRowKeyFilter = TableQuery.CombineFilters(idFilter, TableOperators.And, connectedByFilter);
+            var buildQuery = new TableQuery<Subscription>().Where(combinedRowKeyFilter);
+            var tableQueryResult = await table.ExecuteQuerySegmentedAsync(buildQuery, continuationToken);
+            return tableQueryResult.Results.FirstOrDefault();
+        }
+        #endregion
+
+        #region Subscriptions
+        public Task<List<Subscription>> GetSubscriptionsByUser(string userId)
+        {
+            throw new NotImplementedException();
+        }
+        public async Task<bool> UpdateSubscriptionAsync(Subscription subscription)
+        {
+            var table = await CreateCloudTableAsync("Subscription");
+            var tableOperation = TableOperation.Replace(subscription);
+            var res = await table.ExecuteAsync(tableOperation);
+            return true;
+            //return await GetUserSessionByIdAsync(subscription.Id, subscription.ConnectedBy);
+        }
+
+        public async Task<bool> InsertSubscriptionAsync(Subscription subscription)
+        {
+            var table = await CreateCloudTableAsync("Subscription");
+            var tableOperation = TableOperation.Insert(subscription);
+            var res = await table.ExecuteAsync(tableOperation);
+            return true;
+            //return await GetUserSessionByIdAsync(subscription.Id, subscription.ConnectedBy);
+        }
+        #endregion
     }
 }

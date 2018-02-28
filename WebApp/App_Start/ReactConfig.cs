@@ -1,8 +1,8 @@
 using React;
 
-[assembly: WebActivatorEx.PreApplicationStartMethod(typeof(WebApp.ReactConfig), "Configure")]
+[assembly: WebActivatorEx.PreApplicationStartMethod(typeof(Utilities.ReactConfig), "Configure")]
 
-namespace WebApp
+namespace Utilities
 {
 	public static class ReactConfig
 	{

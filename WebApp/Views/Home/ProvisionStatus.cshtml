@@ -1,0 +1,123 @@
+﻿@model Common.Models.Build
+<div class="jumbotron">
+    <p class="lead">Provision Status</p>
+    <div class="form-horizontal">
+        <div class="form-group">
+            @Html.LabelFor(model => model.Status)
+            <div class="col-md-10">
+                @Html.DisplayFor(model => model.Status, new { htmlAttributes = new { @class = "form-control" } })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Description, htmlAttributes: new { @class = "control-label col-md-2" })
+
+
+
+            <div class="col-md-10">
+                @Html.DisplayFor(model => model.Description, new { htmlAttributes = new { @class = "form-control" } })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.DeploymentName, htmlAttributes: new { @class = "control-label col-md-2" })
+
+
+
+            <div class="col-md-10">
+                @Html.DisplayFor(model => model.DeploymentName, new { htmlAttributes = new { @class = "form-control" } })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.PresetAzureLocationName, htmlAttributes: new { @class = "control-label col-md-2" })
+
+
+
+            <div class="col-md-10">
+                @Html.DisplayFor(model => model.PresetAzureLocationName, new { htmlAttributes = new { @class = "form-control" } })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.PresetAzureAccountName, htmlAttributes: new { @class = "control-label col-md-2" })
+
+
+
+            <div class="col-md-10">
+                @Html.DisplayFor(model => model.PresetAzureAccountName, new { htmlAttributes = new { @class = "form-control" } })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.PresetAzureSubscriptionName, htmlAttributes: new { @class = "control-label col-md-2" })
+
+
+
+            <div class="col-md-10">
+                @Html.DisplayFor(model => model.PresetAzureSubscriptionName, new { htmlAttributes = new { @class = "form-control" } })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.PresetAzureDirectoryName, htmlAttributes: new { @class = "control-label col-md-2" })
+
+
+
+            <div class="col-md-10">
+                @Html.DisplayFor(model => model.PresetAzureDirectoryName, new { htmlAttributes = new { @class = "form-control" } })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.AzureAccountOwnerName, htmlAttributes: new { @class = "control-label col-md-2" })
+
+
+
+            <div class="col-md-10">
+                @Html.DisplayFor(model => model.AzureAccountOwnerName, new { htmlAttributes = new { @class = "form-control" } })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.AzureSubscriptionId, htmlAttributes: new { @class = "control-label col-md-2" })
+
+
+
+            <div class="col-md-10">
+                @Html.DisplayFor(model => model.AzureSubscriptionId, new { htmlAttributes = new { @class = "form-control" } })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.AzureTenantId, htmlAttributes: new { @class = "control-label col-md-2" })
+
+
+
+            <div class="col-md-10">
+                @Html.DisplayFor(model => model.AzureTenantId, new { htmlAttributes = new { @class = "form-control" } })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ServicePrincipalId, htmlAttributes: new { @class = "control-label col-md-2" })
+
+
+
+            <div class="col-md-10">
+                @Html.DisplayFor(model => model.ServicePrincipalId, new { htmlAttributes = new { @class = "form-control" } })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ServicePrincipalPassword, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DisplayFor(model => model.ServicePrincipalPassword, new { htmlAttributes = new { @class = "form-control" } })
+            </div>
+        </div>
+        <p>
+            @Html.ActionLink("Edit", "Edit", new { /* id = Model.PrimaryKey */ }) |
+            @Html.ActionLink("Back to List", "Index")
+        </p>
+    </div>
+</div>

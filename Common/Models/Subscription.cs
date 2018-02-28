@@ -1,18 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.WindowsAzure.Storage.Table;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Web;
 
-namespace WebApp.Models
+namespace Utilities.Models
 {
-    public class Subscription
+    public class Subscription : TableEntity
     {
         public string Id { get; set; }
         public string DirectoryId { get; set; }
         public DateTime ConnectedOn { get; set; }
         public string ConnectedBy { get; set; }
-        [NotMapped]
         public bool AzureAccessNeedsToBeRepaired { get; set; }
     }
 }

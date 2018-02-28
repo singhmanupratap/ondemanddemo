@@ -1,21 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿using Common.Interfaces;
+using Common.Models;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 
-namespace WebApp.Controllers
+namespace WebApp
 {
     public class SolutionController : Controller
     {
-        // GET: Solution
-        public ActionResult Index()
+        public ISolutionBusinessLayer SolutionBusinessLayer { get; set; }
+        public SolutionController(ISolutionBusinessLayer solutionBusinessLayer)
         {
-            return View();
+            SolutionBusinessLayer = solutionBusinessLayer;
+        }
+        // GET: Solution
+        public async Task<ActionResult> Index()
+        {
+            var solutions = await SolutionBusinessLayer.GetSolutionsAsync();
+            return View(solutions);
         }
 
-        public ActionResult Types()
+        public async Task<ActionResult> SelectSolution(string solutionId)
         {
+            if (ClaimsPrincipal.Current.Identity.IsAuthenticated)
+            {
+                string userId = ClaimsPrincipal.Current.FindFirst(ClaimTypes.Name).Value;
+                var session = new UserSession
+                {
+                    UserId = userId,
+                    SolutionId = solutionId
+                };
+                session = await SolutionBusinessLayer.UpdateUserSessionAsync(session);
+            }
             return View();
         }
 

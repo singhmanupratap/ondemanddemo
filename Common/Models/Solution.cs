@@ -17,5 +17,9 @@ namespace Common.Models
         public string BuildTemplate { get; set; }
         public string Image { get; set; }
         public string Id { get; set; }
+        public string BuildDefinitionId { get; set; }
+        public string BuildDefinitionUrl { get; set; }
+        public string BuildDefinitionUserName { get; set; }
+        public string BuildDefinitionPassword { get; set; }
     }
 }

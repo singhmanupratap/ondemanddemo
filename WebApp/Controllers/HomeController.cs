@@ -1,50 +1,92 @@
-﻿using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Cookies;
+﻿using Common.Interfaces;
+using Common.Models;
+using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.OpenIdConnect;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Routing;
+using Utilities;
+using Utilities.Models;
 using WebApp.Models;
-using System.Threading.Tasks;
 
-namespace WebApp.Controllers
+namespace WebApp
 {
     public class HomeController : Controller
     {
-        private DataAccess db = new DataAccess();
+        public ISolutionBusinessLayer SolutionBusinessLayer { get; set; }
+        public HomeController(ISolutionBusinessLayer solutionBusinessLayer)
+        {
+            SolutionBusinessLayer = solutionBusinessLayer;
+        }
 
         public async Task<ActionResult> Index()
         {
-            ViewModel model = null;
-
-            if (ClaimsPrincipal.Current.Identity.IsAuthenticated)
+            var solutions = await SolutionBusinessLayer.GetSolutionsAsync();
+            var model = new SolutionsViewModel
             {
-                string userId = ClaimsPrincipal.Current.FindFirst(ClaimTypes.Name).Value;
-                model = new ViewModel
-                {
-                    ConnectedSubscriptions = new List<Subscription>()
-                };
-                var connectedSubscriptions = db.Subscriptions.Where<Subscription>(s => s.ConnectedBy == userId);
-                foreach (var connectedSubscription in connectedSubscriptions)
-                {
-                    bool servicePrincipalHasReadAccessToSubscription = await AzureResourceManagerUtil.
-                        DoesServicePrincipalHaveReadAccessToSubscription(connectedSubscription.Id, connectedSubscription.DirectoryId);
-                    connectedSubscription.AzureAccessNeedsToBeRepaired = !servicePrincipalHasReadAccessToSubscription;
-
-                    model.ConnectedSubscriptions.Add(connectedSubscription);
-                }
-            }
-
+                Solutions = solutions
+            };
             return View(model);
         }
-        public async Task ConnectSubscription(string subscriptionId)
-        {
-            string directoryId = await AzureResourceManagerUtil.GetDirectoryForSubscription(subscriptionId);
 
+        public async Task<ActionResult> SelectSolution(string solutionId)
+        {
+            if (string.IsNullOrEmpty(solutionId))
+            {
+                return RedirectToAction("Index", new RouteValueDictionary(new { controller = "Home", action = "Index" }));
+            }
+            var solution = await SolutionBusinessLayer.GetSolutionAsync(solutionId);
+            if (solution == null)
+            {
+                return RedirectToAction("Index", new RouteValueDictionary(new { controller = "Home", action = "Index" }));
+            }
+            var session = new UserSession
+            {
+                SolutionId = solutionId
+            };
+            UserSession userSession = await SolutionBusinessLayer.UpdateUserSessionAsync(session);
+            return RedirectToAction("Subscription", new RouteValueDictionary(new { controller = "Home", action = "Subscription", sessionId = userSession.RowKey }));
+        }
+
+        public async Task<ActionResult> Subscription(string sessionId)
+        {
+            if (string.IsNullOrEmpty(sessionId))
+            {
+                return RedirectToAction("Index", new RouteValueDictionary(new { controller = "Home", action = "Index" }));
+            }
+
+            var session = await SolutionBusinessLayer.GetUserSessionByIdAsync(sessionId);
+            if(session == null || session.ExpireTime> DateTime.Now)
+            {
+                return RedirectToAction("Subscription", new RouteValueDictionary(new { controller = "Home", action = "Index" }));
+            }
+            ViewBag.sessionId = sessionId;
+            return View();
+        }
+
+        public async Task<ActionResult> SelectSubscription(string subscriptionId, string sessionId)
+        {
+            if (string.IsNullOrEmpty(sessionId))
+            {
+                return RedirectToAction("Index", new RouteValueDictionary(new { controller = "Home", action = "Index" }));
+            }
+            var session = await SolutionBusinessLayer.GetUserSessionByIdAsync(sessionId);
+            if (session == null || session.ExpireTime > DateTime.Now)
+            {
+                return RedirectToAction("Index", new RouteValueDictionary(new { controller = "Home", action = "Index" }));
+            }
+            else if(string.IsNullOrEmpty(subscriptionId) && session.SubscriptionId!=null)
+            {
+                subscriptionId = session.SubscriptionId;
+            }
+            string directoryId = string.Empty;
+            if (!string.IsNullOrEmpty(subscriptionId))
+                directoryId = await AzureResourceManagerUtil.GetDirectoryForSubscription(subscriptionId);
             if (!String.IsNullOrEmpty(directoryId))
             {
                 if (!User.Identity.IsAuthenticated || !directoryId.Equals(ClaimsPrincipal.Current.FindFirst
@@ -54,19 +96,30 @@ namespace WebApp.Controllers
                         string.Format(ConfigurationManager.AppSettings["Authority"] + "OAuth2/Authorize", directoryId));
 
                     Dictionary<string, string> dict = new Dictionary<string, string>();
-                    dict["prompt"] = "select_account";
+                    session = new UserSession
+                    {
+                        SubscriptionId= subscriptionId,
+                        RowKey = sessionId,
+                        SolutionId=session.SolutionId
+                    };
+                    UserSession userSession = await SolutionBusinessLayer.UpdateUserSessionAsync(session);
 
+                    dict["prompt"] = "select_account";
+                    var redirectUrl = Url.Action("SelectSubscription", "Home") + "?sessionId=" + sessionId;
                     HttpContext.GetOwinContext().Authentication.Challenge(
-                        new AuthenticationProperties (dict) { RedirectUri = this.Url.Action("ConnectSubscription", "Home") + "?subscriptionId=" + subscriptionId },
+                        new AuthenticationProperties(dict) {
+                            RedirectUri = redirectUrl
+                        },
                         OpenIdConnectAuthenticationDefaults.AuthenticationType);
                 }
-                else {
+                else
+                {
                     string objectIdOfCloudSenseServicePrincipalInDirectory = await
                         AzureADGraphAPIUtil.GetObjectIdOfServicePrincipalInDirectory(directoryId, ConfigurationManager.AppSettings["ClientID"]);
 
                     await AzureResourceManagerUtil.GrantRoleToServicePrincipalOnSubscription
                         (objectIdOfCloudSenseServicePrincipalInDirectory, subscriptionId, directoryId);
-
+                    var userId = ClaimsPrincipal.Current.FindFirst(ClaimTypes.Name).Value;
                     Subscription s = new Subscription()
                     {
                         Id = subscriptionId,
@@ -75,50 +128,106 @@ namespace WebApp.Controllers
                         ConnectedOn = DateTime.Now
                     };
 
-                    //if (db.Subscriptions.Find(s.Id) == null)
-                    //{
-                    //    db.Subscriptions.Add(s);
-                    //    db.SaveChanges();
-                    //}
-
-                    Response.Redirect(this.Url.Action("Index", "Home"));
+                    bool res = await SolutionBusinessLayer.UpdateSubscriptionAsync(s);
+                    session = new UserSession
+                    {
+                        RowKey = sessionId,
+                        UserId = userId,
+                        SubscriptionId = subscriptionId,
+                        TenantId = directoryId
+                    };
+                    UserSession userSession = await SolutionBusinessLayer.UpdateUserSessionAsync(session);
+                    return RedirectToAction("Provision", new RouteValueDictionary(new { controller = "Home", action = "Provision", sessionId = sessionId }));
                 }
+
             }
-
-            return;
+            return null;
         }
-        public async Task DisconnectSubscription(string subscriptionId)
+
+        public async Task<ActionResult> Provision(string sessionId)
         {
-            string directoryId = await AzureResourceManagerUtil.GetDirectoryForSubscription(subscriptionId);
-
-            string objectIdOfCloudSenseServicePrincipalInDirectory = await
-                AzureADGraphAPIUtil.GetObjectIdOfServicePrincipalInDirectory(directoryId, ConfigurationManager.AppSettings["ClientID"]);
-
-            await AzureResourceManagerUtil.RevokeRoleFromServicePrincipalOnSubscription
-                (objectIdOfCloudSenseServicePrincipalInDirectory, subscriptionId, directoryId);
-
-            //Subscription s = db.Subscriptions.Find(subscriptionId);
-            //if (s != null)
-            //{
-            //    db.Subscriptions.Remove(s);
-            //    db.SaveChanges();
-            //}
-
-            Response.Redirect(this.Url.Action("Index", "Home"));
+            if (string.IsNullOrEmpty(sessionId))
+            {
+                return RedirectToAction("Index", new RouteValueDictionary(new { controller = "Home", action = "Index" }));
+            }
+            var session = await SolutionBusinessLayer.GetUserSessionByIdAsync(sessionId);
+            if (session == null || session.ExpireTime > DateTime.Now)
+            {
+                return RedirectToAction("Subscription", new RouteValueDictionary(new { controller = "Home", action = "Index" }));
+            }
+            var solution = await SolutionBusinessLayer.GetSolutionAsync(session.SolutionId);
+            var viewModel = new Provision
+            {
+                SolutionName = solution.DisplayName,
+                SubscriptionId = session.SubscriptionId,
+                TenantId = session.TenantId,
+                SessionId = session.RowKey,
+                AzureAccountOwnerName = session.UserId
+            };
+            ViewBag.sessionId = sessionId;
+            return View(viewModel);
         }
-        public async Task RepairSubscriptionConnection(string subscriptionId)
+
+        [HttpPost]
+        public async Task<ActionResult> Provision(Provision provision)
         {
-            string directoryId = await AzureResourceManagerUtil.GetDirectoryForSubscription(subscriptionId);
-
-            string objectIdOfCloudSenseServicePrincipalInDirectory = await
-                AzureADGraphAPIUtil.GetObjectIdOfServicePrincipalInDirectory(directoryId, ConfigurationManager.AppSettings["ClientID"]);
-
-            await AzureResourceManagerUtil.RevokeRoleFromServicePrincipalOnSubscription
-                (objectIdOfCloudSenseServicePrincipalInDirectory, subscriptionId, directoryId);
-            await AzureResourceManagerUtil.GrantRoleToServicePrincipalOnSubscription
-                (objectIdOfCloudSenseServicePrincipalInDirectory, subscriptionId, directoryId);
-
-            Response.Redirect(this.Url.Action("Index", "Home"));
+            if (string.IsNullOrEmpty(provision.SessionId))
+            {
+                return RedirectToAction("Index", new RouteValueDictionary(new { controller = "Home", action = "Index" }));
+            }
+            var session = await SolutionBusinessLayer.GetUserSessionByIdAsync(provision.SessionId);
+            if (session == null || session.ExpireTime > DateTime.Now)
+            {
+                return RedirectToAction("Subscription", new RouteValueDictionary(new { controller = "Home", action = "Index" }));
+            }
+            var build = new Build
+            {
+                AzureAccountOwnerName = provision.AzureAccountOwnerName,
+                AzureSubscriptionId = provision.SubscriptionId,
+                AzureTenantId = provision.TenantId,
+                DeploymentName = provision.DeploymentName,
+                PresetAzureLocationName = provision.LocationName,
+                SolutionId = session.SolutionId,
+                VmAdminPassword = provision.VmAdminPassword,
+                ServicePrincipalId = ConfigurationManager.AppSettings["ClientID"],
+                ServicePrincipalPassword = ConfigurationManager.AppSettings["Password"]
+            };
+            build = await SolutionBusinessLayer.BuildSolutionAsync(build);
+            return View("ProvisionStatus", build);
         }
+
+        //public async Task DisconnectSubscription(string subscriptionId)
+        //{
+        //    string directoryId = await AzureResourceManagerUtil.GetDirectoryForSubscription(subscriptionId);
+
+        //    string objectIdOfCloudSenseServicePrincipalInDirectory = await
+        //        AzureADGraphAPIUtil.GetObjectIdOfServicePrincipalInDirectory(directoryId, ConfigurationManager.AppSettings["ClientID"]);
+
+        //    await AzureResourceManagerUtil.RevokeRoleFromServicePrincipalOnSubscription
+        //        (objectIdOfCloudSenseServicePrincipalInDirectory, subscriptionId, directoryId);
+
+        //    //Subscription s = db.Subscriptions.Find(subscriptionId);
+        //    //if (s != null)
+        //    //{
+        //    //    db.Subscriptions.Remove(s);
+        //    //    db.SaveChanges();
+        //    //}
+
+        //    Response.Redirect(this.Url.Action("Index", "Home"));
+        //}
+        //public async Task RepairSubscriptionConnection(string subscriptionId)
+        //{
+        //    string directoryId = await AzureResourceManagerUtil.GetDirectoryForSubscription(subscriptionId);
+
+        //    string objectIdOfCloudSenseServicePrincipalInDirectory = await
+        //        AzureADGraphAPIUtil.GetObjectIdOfServicePrincipalInDirectory(directoryId, ConfigurationManager.AppSettings["ClientID"]);
+
+        //    await AzureResourceManagerUtil.RevokeRoleFromServicePrincipalOnSubscription
+        //        (objectIdOfCloudSenseServicePrincipalInDirectory, subscriptionId, directoryId);
+        //    await AzureResourceManagerUtil.GrantRoleToServicePrincipalOnSubscription
+        //        (objectIdOfCloudSenseServicePrincipalInDirectory, subscriptionId, directoryId);
+
+        //    Response.Redirect(this.Url.Action("Index", "Home"));
+        //}
     }
 }
