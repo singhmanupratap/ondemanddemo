@@ -27,7 +27,7 @@ namespace Utilities
                 {
                     ClientId = ClientId,
                     Authority = Authority,
-                    RedirectUri = "http://localhost:57077/",
+                    RedirectUri = ConfigurationManager.AppSettings["RedirectUri"],
                     TokenValidationParameters = new System.IdentityModel.Tokens.TokenValidationParameters
                     {
                         ValidateIssuer = false,

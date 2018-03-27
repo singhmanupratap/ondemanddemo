@@ -61,7 +61,7 @@ namespace WebApp
             }
 
             var session = await SolutionBusinessLayer.GetUserSessionByIdAsync(sessionId);
-            if(session == null || session.ExpireTime> DateTime.Now)
+            if (session == null || session.ExpireTime < DateTime.Now)
             {
                 return RedirectToAction("Subscription", new RouteValueDictionary(new { controller = "Home", action = "Index" }));
             }
@@ -76,7 +76,7 @@ namespace WebApp
                 return RedirectToAction("Index", new RouteValueDictionary(new { controller = "Home", action = "Index" }));
             }
             var session = await SolutionBusinessLayer.GetUserSessionByIdAsync(sessionId);
-            if (session == null || session.ExpireTime > DateTime.Now)
+            if (session == null || session.ExpireTime < DateTime.Now)
             {
                 return RedirectToAction("Index", new RouteValueDictionary(new { controller = "Home", action = "Index" }));
             }
@@ -119,12 +119,12 @@ namespace WebApp
 
                     await AzureResourceManagerUtil.GrantRoleToServicePrincipalOnSubscription
                         (objectIdOfCloudSenseServicePrincipalInDirectory, subscriptionId, directoryId);
-                    var userId = ClaimsPrincipal.Current.FindFirst(ClaimTypes.Name).Value;
-                    Subscription s = new Subscription()
+                    var userId = ClaimsPrincipal.Current.FindFirst(ClaimTypes.Upn).Value;
+                    var s = new Subscription()
                     {
                         Id = subscriptionId,
                         DirectoryId = directoryId,
-                        ConnectedBy = ClaimsPrincipal.Current.FindFirst(ClaimTypes.Name).Value,
+                        ConnectedBy = userId,
                         ConnectedOn = DateTime.Now
                     };
 
@@ -151,7 +151,7 @@ namespace WebApp
                 return RedirectToAction("Index", new RouteValueDictionary(new { controller = "Home", action = "Index" }));
             }
             var session = await SolutionBusinessLayer.GetUserSessionByIdAsync(sessionId);
-            if (session == null || session.ExpireTime > DateTime.Now)
+            if (session == null || session.ExpireTime < DateTime.Now)
             {
                 return RedirectToAction("Subscription", new RouteValueDictionary(new { controller = "Home", action = "Index" }));
             }
@@ -176,7 +176,7 @@ namespace WebApp
                 return RedirectToAction("Index", new RouteValueDictionary(new { controller = "Home", action = "Index" }));
             }
             var session = await SolutionBusinessLayer.GetUserSessionByIdAsync(provision.SessionId);
-            if (session == null || session.ExpireTime > DateTime.Now)
+            if (session == null || session.ExpireTime < DateTime.Now)
             {
                 return RedirectToAction("Subscription", new RouteValueDictionary(new { controller = "Home", action = "Index" }));
             }

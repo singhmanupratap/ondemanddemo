@@ -190,12 +190,12 @@ namespace Bussiness
                     existingSession.TenantId = session.TenantId;
                 }
 
-                existingSession.ExpireTime = DateTime.Now.AddMinutes(10);
+                existingSession.ExpireTime = DateTime.Now.AddMinutes(70);
                 session = await Repository.UpdateUserSessionAsync(existingSession);
             }
             else
             {
-                session.ExpireTime = DateTime.Now.AddMinutes(10);
+                session.ExpireTime = DateTime.Now.AddMinutes(70);
                 session = await Repository.AddUserSessionAsync(session);
             }
             return session;
